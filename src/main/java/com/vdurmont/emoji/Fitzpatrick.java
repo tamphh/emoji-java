@@ -56,6 +56,11 @@ public enum Fitzpatrick {
 
   public static Fitzpatrick fitzpatrickFromType(String type) {
     try {
+      final String baseSuffix = "skin-tone-";
+      if (type.contains(baseSuffix)) {
+        return Fitzpatrick.valueOf(type.replace('-', '_').toUpperCase());
+      }
+
       return Fitzpatrick.valueOf(type.toUpperCase());
     } catch (IllegalArgumentException e) {
       return null;

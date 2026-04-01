@@ -327,7 +327,7 @@ public class EmojiParserTest {
   @Test
   public void parseToUnicode_with_a_fitzpatrick_modifier_suffix_format() {
     // GIVEN
-    String str = ":boy::skin_tone_6:";
+    String str = ":boy::skin-tone-6:";
 
     // WHEN
     String result = EmojiParser.parseToUnicode(str);
