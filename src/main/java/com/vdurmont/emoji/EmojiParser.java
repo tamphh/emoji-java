@@ -134,28 +134,43 @@ public class EmojiParser {
     return sb.toString();
   }
 
+  public static final String DOUBLE_COLON_SYMBOL = "::";
+  public static final int PIPE_SYMBOL = '|';
   /** Finds the alias in the given string starting at the given point, null otherwise */
   protected static AliasCandidate getAliasAt(String input, int start) {
     if (input.length() < start + 2 || input.charAt(start) != ':') return null; // Aliases start with :
     int aliasEnd = input.indexOf(':', start + 2);  // Alias must be at least 1 char in length
     if (aliasEnd == -1) return null; // No alias end found
 
-    int separatorLength = 1; // length of '|'
-    int fitzpatrickStart = input.indexOf('|', start + 2);
-    int emojiEnd = aliasEnd;
-    if (fitzpatrickStart == -1) { // not the case of '|' then check if it is '::'
-      fitzpatrickStart = input.indexOf("::", start + 2);
-      int suffixStart = input.indexOf("::");
-      emojiEnd = input.indexOf(':', start + 2 + suffixStart);  // Alias must be at least 1 char in length
-      separatorLength = 2; // length of '::'
+    // Double colon separator checking
+    //----------------------------------------------------------------
+    int lastIndex = Math.min(input.length() - 1, aliasEnd + 2);
+    String assumedDoubleColonSeparator = input.substring(aliasEnd, lastIndex);
+    if (assumedDoubleColonSeparator.equals(DOUBLE_COLON_SYMBOL)) {
+      int fitzpatrickStart = input.indexOf("::", aliasEnd - 2);
+      int emojiEnd = input.indexOf(':', fitzpatrickStart + 2);  // Alias must be at least 1 char in length
+      if (fitzpatrickStart != -1 && fitzpatrickStart < emojiEnd) {
+        int separatorLength = 2; // length of '::'
+        Fitzpatrick fitzpatrick = Fitzpatrick.fitzpatrickFromType(input.substring(fitzpatrickStart + separatorLength, emojiEnd));
+        if (fitzpatrick != null) {
+          Emoji emoji = EmojiManager.getForAlias(input.substring(start, fitzpatrickStart));
+          if (emoji == null) return null; // Not a valid alias
+          if (!emoji.supportsFitzpatrick()) return null; // Fitzpatrick was specified, but the emoji does not support it
+          return new AliasCandidate(emoji, fitzpatrick, start, emojiEnd);
+        }
+      }
     }
-    if (fitzpatrickStart != -1 && fitzpatrickStart < emojiEnd) {
+
+    // Pipe separator checking
+    int fitzpatrickStart = input.indexOf('|', start + 2);
+    if (fitzpatrickStart != -1 && fitzpatrickStart < aliasEnd) {
       Emoji emoji = EmojiManager.getForAlias(input.substring(start, fitzpatrickStart));
       if (emoji == null) return null; // Not a valid alias
       if (!emoji.supportsFitzpatrick()) return null; // Fitzpatrick was specified, but the emoji does not support it
-      Fitzpatrick fitzpatrick = Fitzpatrick.fitzpatrickFromType(input.substring(fitzpatrickStart + separatorLength, emojiEnd));
-      return new AliasCandidate(emoji, fitzpatrick, start, emojiEnd);
+      Fitzpatrick fitzpatrick = Fitzpatrick.fitzpatrickFromType(input.substring(fitzpatrickStart + 1, aliasEnd));
+      return new AliasCandidate(emoji, fitzpatrick, start, aliasEnd);
     }
+    //----------------------------------------------------------------
 
     Emoji emoji = EmojiManager.getForAlias(input.substring(start, aliasEnd));
     if (emoji == null) return null; // Not a valid alias

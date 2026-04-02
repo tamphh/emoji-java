@@ -9,9 +9,7 @@ import org.junit.runners.JUnit4;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class EmojiParserTest {
@@ -313,6 +311,22 @@ public class EmojiParserTest {
   }
 
   @Test
+  public void parseToUnicode_with_the_multiple_emojis() {
+    // GIVEN
+    String str = "emoji here ::woman: :man: :boy: &#x1f604;" +
+            "and there:thumbsup::skin-tone-1::boy::man::boy::skin-tone-6:" +
+            "and more::boy::skin-tone-6::man:lorem: :boy::skin-tone-6::girl:" +
+            "and only 1 char emoji :::::v::skin-tone-3:";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    //THEN
+//    assertEquals("\uD83D\uDC69 \uD83D\uDC68 \uD83D\uDC66", result);
+    assertEquals("emoji here :\uD83D\uDC69 \uD83D\uDC68 \uD83D\uDC66 \uD83D\uDE04and there\uD83D\uDC4D\uD83C\uDFFB\uD83D\uDC66\uD83D\uDC68\uD83D\uDC66\uD83C\uDFFFand more:\uD83D\uDC66\uD83C\uDFFF\uD83D\uDC68lorem: \uD83D\uDC66\uD83C\uDFFF\uD83D\uDC67and only 1 char emoji ::::✌\uD83C\uDFFC", result);
+  }
+
+  @Test
   public void parseToUnicode_with_a_fitzpatrick_modifier() {
     // GIVEN
     String str = ":boy|type_6:";
@@ -327,13 +341,13 @@ public class EmojiParserTest {
   @Test
   public void parseToUnicode_with_a_fitzpatrick_modifier_suffix_format() {
     // GIVEN
-    String str = ":boy::skin-tone-6:";
+    String str = "code skin tone color   :boy::skin-tone-6: :boy::skin-tone-6:";
 
     // WHEN
     String result = EmojiParser.parseToUnicode(str);
 
     // THEN
-    assertEquals("\uD83D\uDC66\uD83C\uDFFF", result);
+    assertEquals("code skin tone color   \uD83D\uDC66\uD83C\uDFFF \uD83D\uDC66\uD83C\uDFFF", result);
   }
 
   @Test
