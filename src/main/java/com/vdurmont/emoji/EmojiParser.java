@@ -134,8 +134,6 @@ public class EmojiParser {
     return sb.toString();
   }
 
-  public static final String DOUBLE_COLON_SYMBOL = "::";
-  public static final int PIPE_SYMBOL = '|';
   /** Finds the alias in the given string starting at the given point, null otherwise */
   protected static AliasCandidate getAliasAt(String input, int start) {
     if (input.length() < start + 2 || input.charAt(start) != ':') return null; // Aliases start with :
@@ -146,7 +144,7 @@ public class EmojiParser {
     //----------------------------------------------------------------
     int lastIndex = Math.min(input.length() - 1, aliasEnd + 2);
     String assumedDoubleColonSeparator = input.substring(aliasEnd, lastIndex);
-    if (assumedDoubleColonSeparator.equals(DOUBLE_COLON_SYMBOL)) {
+    if (assumedDoubleColonSeparator.equals("::")) {
       int fitzpatrickStart = input.indexOf("::", aliasEnd - 2);
       int emojiEnd = input.indexOf(':', fitzpatrickStart + 2);  // Alias must be at least 1 char in length
       if (fitzpatrickStart != -1 && fitzpatrickStart < emojiEnd) {
