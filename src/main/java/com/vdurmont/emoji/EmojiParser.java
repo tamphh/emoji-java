@@ -140,6 +140,26 @@ public class EmojiParser {
     int aliasEnd = input.indexOf(':', start + 2);  // Alias must be at least 1 char in length
     if (aliasEnd == -1) return null; // No alias end found
 
+    // Double colon separator checking
+    //----------------------------------------------------------------
+    int lastIndex = Math.min(input.length() - 1, aliasEnd + 2);
+    String assumedDoubleColonSeparator = input.substring(aliasEnd, lastIndex);
+    if (assumedDoubleColonSeparator.equals("::")) {
+      int fitzpatrickStart = input.indexOf("::", aliasEnd - 2);
+      int emojiEnd = input.indexOf(':', fitzpatrickStart + 2);  // Alias must be at least 1 char in length
+      if (fitzpatrickStart != -1 && fitzpatrickStart < emojiEnd) {
+        int separatorLength = 2; // length of '::'
+        Fitzpatrick fitzpatrick = Fitzpatrick.fitzpatrickFromType(input.substring(fitzpatrickStart + separatorLength, emojiEnd));
+        if (fitzpatrick != null) {
+          Emoji emoji = EmojiManager.getForAlias(input.substring(start, fitzpatrickStart));
+          if (emoji == null) return null; // Not a valid alias
+          if (!emoji.supportsFitzpatrick()) return null; // Fitzpatrick was specified, but the emoji does not support it
+          return new AliasCandidate(emoji, fitzpatrick, start, emojiEnd);
+        }
+      }
+    }
+
+    // Pipe separator checking
     int fitzpatrickStart = input.indexOf('|', start + 2);
     if (fitzpatrickStart != -1 && fitzpatrickStart < aliasEnd) {
       Emoji emoji = EmojiManager.getForAlias(input.substring(start, fitzpatrickStart));
@@ -148,6 +168,7 @@ public class EmojiParser {
       Fitzpatrick fitzpatrick = Fitzpatrick.fitzpatrickFromType(input.substring(fitzpatrickStart + 1, aliasEnd));
       return new AliasCandidate(emoji, fitzpatrick, start, aliasEnd);
     }
+    //----------------------------------------------------------------
 
     Emoji emoji = EmojiManager.getForAlias(input.substring(start, aliasEnd));
     if (emoji == null) return null; // Not a valid alias

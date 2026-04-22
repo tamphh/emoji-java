@@ -274,4 +274,38 @@ public class EmojiManagerTest {
     assertEquals(wavingHand, e.getUnicode());
     assertEquals("waving hand sign", e.getDescription());
   }
+
+  @Test
+  public void containsEmojis_check_large_html_text() {
+    String htmlContent = "<!DOCTYPE html>\n" +
+            "<html lang=\"en\">\n" +
+            "<head>\n" +
+            "    <meta charset=\"UTF-8\">\n" +
+            "    <title>Q3 Announcement</title>\n" +
+            "</head>\n" +
+            "<body>\n" +
+            "    <p><strong>We're thrilled to announce that we've officially hit our Q3 targets ahead of schedule! :tada:</strong></p>\n" +
+            "    <p>Thanks to the incredible work across all teams, we've seen major improvements in key areas:</p>\n" +
+            "    <ul>\n" +
+            "        <li>:chart_with_upwards_trend: 25% growth in user engagement :thumbsup|type_6:</li>\n" +
+            "        <li>:rocket: Successful rollout of two major product updates :boy|type-6:</li>\n" +
+            "        <li>:handshake: Strengthened partnerships and expanded our client base</li>\n" +
+            "    </ul>\n" +
+            "    <p>This momentum sets us up for an even stronger Q4.<br>\n" +
+            "    Be sure to check out the full breakdown of our progress and what's coming next!</p>\n" +
+            "Unicode: \uD83D\uDC4D \uD83D\uDC4D\uD83C\uDFFE  \uD83D\uDC66 \uD83D\uDC66\uD83C\uDFFF"+
+            "<br/>" +
+            "Short code: :thumbsup: :boy: :smile:"+
+            "<br/>" +
+            "Short code skin tone :thumbsup::skin-tone-1: :thumbsup::skin-tone-3: :thumbsup::skin-tone-4: :thumbsup::skin-tone-5: :thumbsup::skin-tone-6: "+
+            "<br/>" +
+            "<a href=\"https://google.com\">Open Google</a>" +
+            "<br/>" +
+            "<br/>" +
+
+            "    <p>Let's keep up the great work!</p>\n" +
+            "</body>\n" +
+            "</html>";
+    assertTrue(EmojiManager.containsEmoji(htmlContent));
+  }
 }
