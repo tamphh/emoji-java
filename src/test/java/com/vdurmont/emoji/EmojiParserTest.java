@@ -579,6 +579,124 @@ public class EmojiParserTest {
     assertEquals(":first_place_medal:", result);
   }
 
+  // ---- parseToUnicode skin-color (Fitzpatrick) tests ----
+
+  @Test
+  public void parseToUnicode_skinTone_pipeNotation_allFitzpatrickTypes() {
+    // GIVEN: one alias per Fitzpatrick type using the pipe (|) separator
+    String str = ":boy|type_1_2: :boy|type_3: :boy|type_4: :boy|type_5: :boy|type_6:";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    // THEN: each type maps to its respective skin tone modifier
+    assertEquals(
+      "\uD83D\uDC66\uD83C\uDFFB \uD83D\uDC66\uD83C\uDFFC \uD83D\uDC66\uD83C\uDFFD \uD83D\uDC66\uD83C\uDFFE \uD83D\uDC66\uD83C\uDFFF",
+      result
+    );
+  }
+
+  @Test
+  public void parseToUnicode_skinTone2_sameUnicodeAsSkinTone1() {
+    // GIVEN: skin-tone-1 and skin-tone-2 both map to PALE_WHITE (\uD83C\uDFFB)
+    String strTone1 = ":boy::skin-tone-1:";
+    String strTone2 = ":boy::skin-tone-2:";
+
+    // WHEN
+    String resultTone1 = EmojiParser.parseToUnicode(strTone1);
+    String resultTone2 = EmojiParser.parseToUnicode(strTone2);
+
+    // THEN: both produce identical unicode output
+    assertEquals("\uD83D\uDC66\uD83C\uDFFB", resultTone1);
+    assertEquals(resultTone1, resultTone2);
+  }
+
+  @Test
+  public void parseToUnicode_skinTone_consecutiveDoubleColonEmojis() {
+    // GIVEN: two skin-toned emojis in a row separated only by "::"
+    // The closing ":" of the first skin-tone and the opening ":" of the next
+    // alias share the "::" boundary between them.
+    String str = ":boy::skin-tone-3::girl::skin-tone-4:";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    // THEN: boy+cream-white followed immediately by girl+moderate-brown
+    assertEquals(
+      "\uD83D\uDC66\uD83C\uDFFC\uD83D\uDC67\uD83C\uDFFD",
+      result
+    );
+  }
+
+  @Test
+  public void parseToUnicode_skinTone_thumbsupDoubleColonAllTypes() {
+    // GIVEN: :+1: with every skin-tone via the "::" double-colon separator
+    String str = ":+1::skin-tone-1: :+1::skin-tone-3: :+1::skin-tone-4: :+1::skin-tone-5: :+1::skin-tone-6:";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    // THEN
+    assertEquals(
+      "\uD83D\uDC4D\uD83C\uDFFB \uD83D\uDC4D\uD83C\uDFFC \uD83D\uDC4D\uD83C\uDFFD \uD83D\uDC4D\uD83C\uDFFE \uD83D\uDC4D\uD83C\uDFFF",
+      result
+    );
+  }
+
+  @Test
+  public void parseToUnicode_skinTone_doubleColonPrefix_producesLeadingLiteralColon() {
+    // GIVEN: "::boy::skin-tone-6:" — the very first ":" cannot start a valid
+    // alias ("::boy:…" fails the trimAlias lookup), so it stays as a literal
+    // colon; parsing resumes at the second ":" which begins ":boy::skin-tone-6:".
+    String str = "::boy::skin-tone-6:";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    // THEN: one literal ":" followed by the skin-toned boy emoji
+    assertEquals(":\uD83D\uDC66\uD83C\uDFFF", result);
+  }
+
+  @Test
+  public void parseToUnicode_skinTone_tripleColonPrefix_producesTwoLeadingLiteralColons() {
+    // GIVEN: ":::boy::skin-tone-6:" — two opening colons that cannot form valid
+    // aliases are left as literal characters; the third ":" starts the real alias.
+    String str = ":::boy::skin-tone-6:";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    // THEN: two literal "::" characters followed by the skin-toned boy emoji
+    assertEquals("::\uD83D\uDC66\uD83C\uDFFF", result);
+  }
+
+  @Test
+  public void parseToUnicode_skinTone_mixedPipeAndDoubleColonFormats() {
+    // GIVEN: a string that contains both pipe (|) and double-colon (::) skin-tone formats
+    String str = ":woman|type_4: :man::skin-tone-3:";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    // THEN: woman+moderate-brown, man+cream-white
+    assertEquals("\uD83D\uDC69\uD83C\uDFFD \uD83D\uDC68\uD83C\uDFFC", result);
+  }
+
+  @Test
+  public void parseToUnicode_skinTone_inMiddleOfSentence() {
+    // GIVEN: skin-toned emoji aliases surrounded by plain text
+    String str = "Hello :girl::skin-tone-5: world :boy|type_3: friend";
+
+    // WHEN
+    String result = EmojiParser.parseToUnicode(str);
+
+    // THEN: surrounding text preserved, emojis replaced with correct skin tones
+    assertEquals(
+      "Hello \uD83D\uDC67\uD83C\uDFFE world \uD83D\uDC66\uD83C\uDFFC friend",
+      result
+    );
+  }
+
 /*  @Test
   public void removeAllEmojiParser_with_continuous_emojis() {
     // GIVEN
